@@ -1,0 +1,108 @@
+{% extends "file/base_file.html" %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="g-4 mx-4">
+            {% for group in groups %}
+                <span class="badge rounded-pill bg-primary">
+                    <a style="text-decoration: none;" class="text-white" href="{% url "file_group" slug=group.slug %}"><i class="bi bi-folder-fill"></i> {{ group.name }}</a>
+                </span>
+            {% endfor %}
+        </div>
+        <div class="row row-cols-1 row-cols-md-5 g-4 m-2 d-flex">
+            {% if user.left_file_upload %}
+                <div class="col">
+                    <div class="card border-0">
+                        <form class="was-validated m-4" method="post"
+                              enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <label for="title" class="form-label">Name</label>
+                            <input type="text" name="name" class="form-control form-control-lg" id="title" aria-describedby="basic-addon2" maxlength="50">
+                            <label for="textaria" class="form-label">Description</label>
+                            <input name="description" class="form-control" id="textaria" aria-describedby="basic-addon3">
+                            <div class="form-check form-check-inline">
+                            </div>
+                            <label for="file" class="form-label">File (You have {{ user.left_file_upload | filesizeformat }} left)</label>
+                            <input type="file" class="form-control" id="file" aria-describedby="basic-addon3" name="file" multiple="" required>
+                            <br>
+                            <div class="mb-3">
+                                <button class="btn btn-success" type="submit">Submit file</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+            {% for file in files %}
+                <div style="margin-top:auto" class="col">
+                    <a style="text-decoration: none; color: black" href="{{ file.slug }}">
+                    <div class="card border-0">
+                        <div class="card-body">
+                            {% if "image" in file.type %}
+                                <div class="col-md-4">
+                                    <img style="max-width: 200px; max-height: 200px;" href="{{ file.slug }}" src="{{ file.file.url }}" class="img-fluid rounded-start mb-3" alt="image">
+                                </div>
+                            {% else %}
+                                <div class="col-md-4">
+                                <a href="{{ file.slug }}">
+                                    <img style="width: 200px; height: 200px;" src="{{ file.svg }}" class="img-fluid rounded-start" alt="image">
+                                </a>
+                                </div>
+                            {% endif %}
+                            <h5 class="card-title">{{ file.name }}</h5>
+                            <a style="color: black; text-decoration: none" href="{{ file.file.url }}" download><i class="bi bi-download"></i></a>
+                            <button onclick="copyLink('{{ file.slug }}')" class="btn btn-sm"><div class="shareButton"><i class="bi bi-share-fill"></i></div></button>
+                            {{ file.file.size | filesizeformat }}
+                        </div>
+                    </div>
+                </a>
+                </div>
+            {% endfor %}
+        </div>
+        <ul class="pagination m-4">
+            {% if files.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ files.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">{{ files.previous_page_number }}</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% if files.has_next or files.has_previous %}
+                <li class="page-item"><a class="page-link">{{ files.number }}</a></li>
+            {% endif %}
+            {% if files.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ files.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">{{ files.next_page_number }}</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ p.num_pages }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+        <script>
+        function copyLink(name) {
+        let text = window.location.origin + "/file/" + name
+        navigator.clipboard.writeText(text).then(function() {
+          console.log('Async: Copying to clipboard was successful!');
+        }, function(err) {
+          console.error('Async: Could not copy text: ', err);
+        });
+        ShareButton.innerHTML = "<i style='color: white;' class='bi bi-check2'></i>";
+        setTimeout(function(){ ShareButton.innerHTML = "<i style='color: white;' class='bi bi-share-fill'></i>"; }, 1000);
+    }
+        </script>
+    {% else %}
+        <br>
+        <div class="alert alert-warning" role="alert">
+            It seems, that you are not authenticated, <a href="{% url "login" %}">log in</a> or <a
+                href="{% url "register" %}">register</a> first
+        </div>
+    {% endif %}
+{% endblock %}

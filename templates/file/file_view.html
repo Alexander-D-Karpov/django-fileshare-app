@@ -1,0 +1,95 @@
+{% extends 'file/base_file.html' %}
+{% block extra_head %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+form {
+	display: inline-block;
+}
+    </style>
+    <meta property="og:url" content="{{ file.get_absolute_url }}" />
+    <meta property="og:title" content="{{ file.name }}" />
+    <meta name="twitter:title" content="{{ file.name }}" />
+    <meta property="og:site_name" content="akarpov.ru"/>
+    <meta name="twitter:site" content="akarpov.ru" />
+    <meta property="og:description" content="{{ file.description }}" />
+    <meta name="twitter:description" content="{{ file.description }}" />
+    {% if "image" in file.type %}
+        <meta property="og:image" content="{{ file.file.url }}" />
+        <meta name="twitter:image:src" content="{{ file.file.url }}" />
+        <meta name="og:image:type" content="{{ file.type }}" />
+        <meta property="og:image:width" content="{{ width }}" />
+        <meta property="og:image:height" content="{{ height }}" />
+        <meta property="og:image:alt" content="File on akarpov.ru" />
+        <meta property="og:type" content="object" />
+        <meta name="twitter:card" content="summary_large_image" />
+    {% elif "video" in file.type %}
+        <meta property="og:video" content="{{ file.file.url }}" />
+        <meta property="og:video:type" content="{{ file.type }}" />
+        <meta property="og:video:width" content="{{ width }}" />
+        <meta property="og:video:height" content="{{ height }}" />
+    {% elif file.type == "audio/mpeg"%}
+        <meta property="og:audio" content="{{ file.file.url }}" />
+    {% endif %}
+
+{% endblock %}
+{% block content %}
+    <h2>{{ file.name }}</h2>
+    <p>owned by <a href="{% url "profile" username=file.user.username %}">{{ file.user.username }}</a></p>
+    <h5> {{ file.date }} - {{ file.file.size | filesizeformat }}</h5>
+    <p>{{ file.description }}</p>
+    <p>{{ file.type }}</p>
+    <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+    <a href="{{ file.file.url }}" class="btn btn-success" download>download</a>
+        {% if user.is_authenticated %}
+            {% if is_saved %}
+            <br>
+            <form method="post" action="{% url "delete_file" file.slug %}">
+                {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">delete</button>
+            </form>
+            {% endif %}
+        {% endif %}
+    </div>
+    {% if user.is_superuser and groups %}
+        <br>
+        <br>
+        <h5>Groups:</h5>
+        {% for group in groups %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="group">
+                        {% if group.name in group_files %}
+                            <button type="submit" class="btn btn-outline-danger">{{ group.name }}</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-outline-success">{{ group.name }}</button>
+                        {% endif %}
+                <input name="slug" type="hidden" value="{{ file.slug }}">
+                <input type="hidden" name="group" value="{{ group.name }}">
+            </form>
+        {% endfor %}
+    {% endif %}
+    <br>
+    {% if "pdf" in file.type %}
+    <embed src="{{ file.file.url }}" type="application/pdf" height="700px" width="500">
+    {% elif "text" in file.type or "application" in file.type %}
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+    <br>
+    <pre class="prettyprint">{{ content }}</pre>
+    {% elif "image" in file.type %}
+            <br>
+            <img src="{{ file.file.url }}" class="img-fluid">
+    {% elif "video" in file.type %}
+            <br>
+            <div class="ratio ratio-16x9">
+              <video src="{{ file.file.url }}" controls></video>
+            </div>
+    {% elif "audio" in file.type %}
+    <br>
+        <div class="container-audio">
+            <audio controls loop autoplay>
+               <source src="{{ file.file.url }}" type="{{ file.type }}">
+               Your browser dose not Support the audio Tag
+            </audio>
+        </div>
+    {% endif %}
+{% endblock %}
