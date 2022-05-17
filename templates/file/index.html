@@ -33,18 +33,16 @@
             {% endif %}
             {% for file in files %}
                 <div style="margin-top:auto" class="col">
-                    <a style="text-decoration: none; color: black" href="{{ file.slug }}">
+                    <a style="text-decoration: none; color: black" href="{{ file.get_absolute_url }}">
                     <div class="card border-0">
                         <div class="card-body">
                             {% if "image" in file.type %}
                                 <div class="col-md-4">
-                                    <img style="max-width: 200px; max-height: 200px;" href="{{ file.slug }}" src="{{ file.file.url }}" class="img-fluid rounded-start mb-3" alt="image">
+                                    <img style="max-width: 200px; max-height: 200px;" src="{{ file.file.url }}" class="img-fluid rounded-start mb-3" alt="image">
                                 </div>
                             {% else %}
                                 <div class="col-md-4">
-                                <a href="{{ file.slug }}">
                                     <img style="width: 200px; height: 200px;" src="{{ file.svg }}" class="img-fluid rounded-start" alt="image">
-                                </a>
                                 </div>
                             {% endif %}
                             <h5 class="card-title">{{ file.name }}</h5>

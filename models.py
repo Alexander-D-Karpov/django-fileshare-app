@@ -51,11 +51,7 @@ class File(models.Model):
         super(File, self).delete()
 
     def svg(self):
-        if settings.DEBUG:
-            host = "https://dev.akarpov.ru"
-        else:
-            host = "https://akarpov.ru"
-        return host + get_svg(self.type)
+        return get_svg(self.type)
 
 
 class Group(models.Model):
@@ -63,7 +59,8 @@ class Group(models.Model):
     slug = models.SlugField(blank=False, unique=True)
     private = models.BooleanField(default=True)
 
-    def save(self):
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
         if self.private:
             self.slug = "".join(secrets.choice(string.ascii_letters) for _ in range(10))
         else:
